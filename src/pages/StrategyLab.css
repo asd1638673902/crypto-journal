@@ -1,0 +1,592 @@
+/* 策略实验室样式 */
+.strategylab-page {
+  max-width: 1100px;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.source-tag.info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+/* 标签页 */
+.lab-tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 20px;
+  border-bottom: 1px solid #2d2e3d;
+}
+
+.lab-tab {
+  padding: 10px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lab-tab:hover {
+  color: #e2e8f0;
+}
+
+.lab-tab.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+}
+
+.lab-content {
+  margin-top: 20px;
+}
+
+/* 面板 */
+.lab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 回测配置 */
+.bt-config {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.config-field input,
+.config-field select {
+  padding: 8px 10px;
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.config-field input:focus,
+.config-field select:focus {
+  border-color: #3b82f6;
+}
+
+.config-field select option {
+  background: #1a1b23;
+  color: #e2e8f0;
+}
+
+.btn-run {
+  padding: 10px 28px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-run:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-run:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.optimizing-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* 回测结果 */
+.bt-result {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.bt-result h3 {
+  font-size: 16px;
+  color: #e2e8f0;
+  margin-bottom: 4px;
+}
+
+.result-period {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+/* 指标网格 */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.metric-card {
+  background: #0f1117;
+  border: 1px solid #23243a;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.metric-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* 图表卡片 */
+.chart-card {
+  background: #0f1117;
+  border: 1px solid #23243a;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.chart-card h4 {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+/* 交易明细表格 */
+.bt-trades h4 {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.table-container {
+  background: #0f1117;
+  border: 1px solid #23243a;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.trades-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.trades-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid #2d2e3d;
+}
+
+.trades-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #1a1b23;
+  color: #e2e8f0;
+}
+
+.trades-table tbody tr:hover {
+  background: #23243a;
+}
+
+.dir-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dir-badge.long {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+.dir-badge.short {
+  background: #1e3a2f;
+  color: #86efac;
+}
+
+.exit-reason {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.exit-reason.stop_loss {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.exit-reason.take_profit {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.exit-reason.signal {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+/* 优化结果 */
+.opt-results {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.opt-results h3 {
+  font-size: 15px;
+  color: #e2e8f0;
+  margin-bottom: 12px;
+}
+
+/* 风险管理 */
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.risk-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-card {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detail-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+
+/* 仓位结果 */
+.position-result {
+  margin-top: 12px;
+  padding: 12px;
+  background: #0f1117;
+  border-radius: 8px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 13px;
+  color: #94a3b8;
+  border-bottom: 1px solid #1a1b23;
+}
+
+.result-row:last-child {
+  border-bottom: none;
+}
+
+.result-row .value {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.result-row.highlight {
+  background: rgba(245, 158, 11, 0.05);
+  padding: 5px 8px;
+  margin: 0 -8px;
+  border-radius: 4px;
+}
+
+.status-bar {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.status-bar.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+@media (max-width: 768px) {
+  .risk-grid {
+    grid-template-columns: 1fr;
+  }
+  .config-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* 扫描器子标签 */
+.scanner-subtabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #2d2e3d;
+}
+
+.lab-tab.small {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* 评分徽章（小） */
+.score-badge-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.score-badge-sm.high { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.score-badge-sm.mid { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.score-badge-sm.low { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+/* 信号标签列表 */
+.signal-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.signal-list.compact {
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.signal-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  background: #23243a;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+/* 综合体检 */
+.full-analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.overall-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.score-badge-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 700;
+  border: 3px solid;
+}
+
+.score-badge-lg.high { background: rgba(34, 197, 94, 0.1); border-color: #22c55e; color: #4ade80; }
+.score-badge-lg.mid { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #fbbf24; }
+.score-badge-lg.low { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #f87171; }
+
+.overall-label {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.overall-rec {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+/* 分析网格 */
+.full-analysis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.analysis-item {
+  background: #0f1117;
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid #23243a;
+}
+
+.analysis-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.analysis-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.no-signal {
+  font-size: 11px;
+  color: #475569;
+}
+
+.status-bar.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+@media (max-width: 640px) {
+  .full-analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============ 回测结果对比样式 ============ */
+.bt-comparison {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comparison-header h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #e2e8f0;
+}
+
+.btn-clear {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-clear:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 6px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.btn-remove:hover {
+  color: #ef4444;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 6px 10px;
+  text-align: center;
+  border-bottom: 1px solid #2d2e3d;
+}
+
+.comparison-table th {
+  color: #94a3b8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.comparison-table td.metric-name {
+  text-align: left;
+  color: #94a3b8;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.comparison-table tr:hover td {
+  background: rgba(59, 130, 246, 0.03);
+}

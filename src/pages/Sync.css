@@ -1,0 +1,546 @@
+/* Sync 页面样式 */
+.sync-page {
+  max-width: 900px;
+}
+
+.page-subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin-top: -8px;
+  margin-bottom: 24px;
+}
+
+/* 节 */
+.sync-section {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-icon {
+  font-size: 18px;
+}
+
+/* API 表单 */
+.api-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.form-input {
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-input:focus {
+  border-color: #3b82f6;
+}
+
+.form-input::placeholder {
+  color: #475569;
+}
+
+.form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secret-input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.secret-input-wrapper .form-input {
+  flex: 1;
+}
+
+.toggle-secret-btn {
+  background: #23243a;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.15s;
+}
+
+.toggle-secret-btn:hover {
+  background: #2d2e3d;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 按钮 */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #23243a;
+  color: #e2e8f0;
+  border: 1px solid #2d2e3d;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #2d2e3d;
+}
+
+.btn-danger {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-sync {
+  background: linear-gradient(135deg, #f0b90b, #f5d429);
+  color: #1a1b23;
+  font-size: 15px;
+  padding: 14px 28px;
+  min-width: 180px;
+  justify-content: center;
+}
+
+.btn-sync:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
+}
+
+/* 状态栏 */
+.status-bar {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-bar.testing {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-bar.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-bar.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-bar.info {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 账户信息 */
+.connection-info {
+  background: #0f1117;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #2d2e3d;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.info-label {
+  color: #64748b;
+}
+
+.info-value {
+  color: #e2e8f0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* 同步控制区 */
+.sync-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.sync-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-options {
+  display: flex;
+  gap: 6px;
+}
+
+.day-btn {
+  padding: 8px 14px;
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.day-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #e2e8f0;
+}
+
+.day-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.day-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 进度 */
+.sync-progress {
+  margin-top: 16px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #2d2e3d;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, #f0b90b, #f5d429, #f0b90b);
+  border-radius: 2px;
+  animation: progress-slide 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.progress-text {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+/* 同步结果 */
+.sync-result {
+  margin-top: 20px;
+  background: #0f1117;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.sync-result h3 {
+  font-size: 14px;
+  color: #e2e8f0;
+  margin-bottom: 12px;
+}
+
+.import-summary {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.import-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.import-badge.success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.import-badge.skip {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.import-badge.total {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+/* 结果表格 */
+.result-table-wrapper {
+  overflow-x: auto;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.result-table th {
+  text-align: left;
+  padding: 8px 10px;
+  color: #64748b;
+  font-weight: 500;
+  border-bottom: 1px solid #2d2e3d;
+  white-space: nowrap;
+}
+
+.result-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #1e1f2e;
+  color: #e2e8f0;
+}
+
+.result-table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.result-table .lucky-row {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.symbol-cell {
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.dir-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dir-badge.long {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.dir-badge.short {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.pnl-positive {
+  color: #ef4444;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.pnl-negative {
+  color: #22c55e;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.lucky-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  cursor: help;
+}
+
+.more-hint {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* 同步历史 */
+.logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.log-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #0f1117;
+  border-radius: 8px;
+}
+
+.log-status-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.log-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-time {
+  font-size: 13px;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.log-detail {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.log-duration {
+  font-size: 12px;
+  color: #64748b;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  flex-shrink: 0;
+}
+
+/* 空状态 */
+.empty-hint {
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 安全提示 */
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tips-list li {
+  padding: 8px 12px;
+  background: #0f1117;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.5;
+  padding-left: 12px;
+  position: relative;
+}
+
+.tips-list li strong {
+  color: #fbbf24;
+}

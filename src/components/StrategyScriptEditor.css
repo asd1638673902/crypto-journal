@@ -1,0 +1,288 @@
+/* 策略脚本编辑器样式 */
+.script-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 编辑区 */
+.editor-section {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.editor-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #2d2e3d;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.script-name-input {
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  min-width: 180px;
+  transition: border-color 0.15s;
+}
+
+.script-name-input:focus {
+  border-color: #3b82f6;
+}
+
+.indicator-badge {
+  font-size: 10px;
+  color: #64748b;
+  background: #0f1117;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.editor-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.example-select {
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #e2e8f0;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.example-select option {
+  background: #1a1b23;
+}
+
+/* 代码编辑器 */
+.code-editor-wrapper {
+  display: flex;
+  background: #0d1117;
+  border-bottom: 1px solid #2d2e3d;
+}
+
+.code-lines {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 8px;
+  background: #161b22;
+  border-right: 1px solid #2d2e3d;
+  user-select: none;
+  min-width: 40px;
+  text-align: right;
+}
+
+.line-num {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #484f58;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.code-textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px 16px;
+  color: #e6edf3;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 260px;
+  max-height: 500px;
+  outline: none;
+  tab-size: 2;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.code-textarea::placeholder {
+  color: #484f58;
+}
+
+/* 编译错误 */
+.compile-error {
+  padding: 10px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-bar.error {
+  padding: 10px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  font-size: 12px;
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* 回测结果 */
+.script-result {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.script-result h3 {
+  font-size: 15px;
+  color: #e2e8f0;
+  margin-bottom: 4px;
+}
+
+.result-period {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+
+/* 指标网格 */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metric-card {
+  background: #0f1117;
+  border: 1px solid #23243a;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.metric-label {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.chart-card {
+  background: #0f1117;
+  border: 1px solid #23243a;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.chart-card h4 {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.btn-run {
+  padding: 8px 20px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-run:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-run:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 交易明细 */
+.bt-trades h4 {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.table-container {
+  background: #0f1117;
+  border: 1px solid #23243a;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.trades-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.trades-table th {
+  text-align: left;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid #2d2e3d;
+}
+
+.trades-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #1a1b23;
+  color: #e2e8f0;
+}
+
+.trades-table tbody tr:hover {
+  background: #23243a;
+}
+
+.dir-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dir-badge.long {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+.dir-badge.short {
+  background: #1e3a2f;
+  color: #86efac;
+}
+
+.status-bar {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}

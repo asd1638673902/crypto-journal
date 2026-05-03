@@ -1,0 +1,403 @@
+/* Trades 页面样式 */
+.trades-page {
+  max-width: 1000px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.trades-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-refresh {
+  background: #23243a;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.btn-refresh:hover {
+  background: #2d2e3d;
+  border-color: #3b82f6;
+}
+
+/* ===== 筛选栏 ===== */
+.filter-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 下拉选择器 */
+.filter-select-wrapper {
+  position: relative;
+}
+
+.filter-select {
+  appearance: none;
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  padding: 8px 32px 8px 12px;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  min-width: 130px;
+  transition: border-color 0.15s;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+  border-color: #3b82f6;
+}
+
+.filter-select-wrapper::after {
+  content: '▾';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.filter-select option {
+  background: #1a1b23;
+  color: #e2e8f0;
+}
+
+/* 按钮式筛选 */
+.filter-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.filter-btn {
+  padding: 8px 14px;
+  border: 1px solid #2d2e3d;
+  background: #0f1117;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-btn:hover {
+  border-color: #3b82f6;
+  color: #e2e8f0;
+}
+
+.filter-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+/* 来源筛选按钮 — 激活时配对应颜色 */
+.filter-btn.source-exchange.active {
+  background: #f0b90b;
+  border-color: #f0b90b;
+  color: #1a1b23;
+}
+
+.filter-btn.source-manual.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.filter-btn.source-mock.active {
+  background: #64748b;
+  border-color: #64748b;
+  color: #fff;
+}
+
+/* 筛选摘要 */
+.filter-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.filter-result-count {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.filter-result-pnl {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.filter-result-wins {
+  font-size: 11px;
+  color: #64748b;
+  background: #23243a;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.filter-clear {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.filter-clear:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #3b82f6;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748b;
+}
+.empty-state p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+/* 表格容器 */
+.table-container {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.trades-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.trades-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid #2d2e3d;
+  white-space: nowrap;
+}
+
+.trades-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #23243a;
+  white-space: nowrap;
+}
+
+.trades-table tbody tr:hover {
+  background: #23243a;
+}
+
+.trades-table tr.lucky-row {
+  background: #451a03;
+}
+.trades-table tr.lucky-row:hover {
+  background: #5a2508;
+}
+
+.time-cell {
+  line-height: 1.4;
+}
+.time-sub {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.symbol-link {
+  color: #e2e8f0;
+  text-decoration: none;
+  font-weight: 600;
+}
+.symbol-link:hover {
+  color: #3b82f6;
+}
+
+.dir-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.dir-badge.long {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+.dir-badge.short {
+  background: #1e3a2f;
+  color: #86efac;
+}
+
+.pnl-cell {
+  font-weight: 600;
+}
+.lucky-tag {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  background: #451a03;
+  color: #f59e0b;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.open-tag {
+  font-size: 12px;
+  color: #f59e0b;
+}
+
+.score-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.status-tag.closed {
+  background: #1e3a2f;
+  color: #86efac;
+}
+.status-tag.open {
+  background: #451a03;
+  color: #f59e0b;
+}
+.status-tag.cancelled {
+  background: #2d2e3d;
+  color: #64748b;
+}
+
+.action-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 13px;
+  margin-right: 12px;
+}
+.action-link:hover {
+  text-decoration: underline;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 13px;
+}
+.action-btn:hover {
+  text-decoration: underline;
+}
+
+/* 数据源标签 */
+.source-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.source-tag.exchange {
+  background: rgba(240, 185, 11, 0.15);
+  color: #f0b90b;
+}
+
+.source-tag.manual {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.source-tag.mock {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}

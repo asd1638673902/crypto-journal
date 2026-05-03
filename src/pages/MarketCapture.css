@@ -1,0 +1,277 @@
+/* ==================== MarketCapture.css ==================== */
+
+.market-capture-page {
+  padding: 0 0 24px;
+}
+
+/* ---------- 区块 ---------- */
+.mc-section {
+  background: linear-gradient(135deg, #15161e 0%, #1a1b23 100%);
+  border: 1px solid #2d2e3d;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.mc-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mc-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.mc-section-hint {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* ---------- 市场热力 ---------- */
+.mc-heat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.mc-heat-card {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mc-heat-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 8px 10px 4px;
+  border-bottom: 1px solid #2d2e3d;
+}
+
+.mc-heat-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.mc-heat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+.mc-heat-row:hover {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.mc-heat-rank {
+  width: 16px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.mc-heat-symbol {
+  flex: 1;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mc-heat-price {
+  font-size: 10px;
+  color: #64748b;
+  min-width: 55px;
+  text-align: right;
+}
+
+.mc-heat-value {
+  font-weight: 600;
+  min-width: 50px;
+  text-align: right;
+}
+.mc-heat-row:hover .mc-heat-symbol {
+  color: #60a5fa;
+}
+
+.mc-up { color: #ef4444; }
+.mc-down { color: #22c55e; }
+
+/* ---------- 主布局（扫描 + 分析） ---------- */
+.mc-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.mc-left, .mc-right {
+  min-width: 0;
+}
+
+/* ---------- 扫描工具 ---------- */
+.mc-scan-panel {
+  /* inherited from lab-panel */
+}
+
+.mc-scan-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.mc-scan-tabs .lab-tab.small {
+  font-size: 12px;
+  padding: 5px 12px;
+}
+
+/* ---------- 快速分析入口 ---------- */
+.mc-analyze-quick {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mc-quick-btn {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  color: #e2e8f0;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mc-quick-btn:hover {
+  background: rgba(59,130,246,0.1);
+  border-color: rgba(59,130,246,0.3);
+  color: #60a5fa;
+}
+
+/* ---------- 深度分析 ---------- */
+.mc-analysis-placeholder {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.mc-analysis-panel {
+  /* inherited from lab-panel */
+}
+
+.mc-analysis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.mc-analysis-symbol {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.mc-analysis-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.mc-analysis-full {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.mc-analysis-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mc-analysis-mode {
+  display: flex;
+  gap: 3px;
+}
+
+.mc-analysis-mode .lab-tab.small {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+
+.mc-analysis-config {
+  display: flex;
+  gap: 4px;
+}
+
+.mc-analysis-content {
+  /* content area */
+}
+
+.mc-analysis-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.mc-analysis-card {
+  background: #11121a;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.mc-opportunity-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(45,46,61,0.5);
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.mc-opportunity-row:last-child {
+  border-bottom: none;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 900px) {
+  .mc-main-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .mc-heat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mc-analysis-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 901px) {
+  .mc-heat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .mc-heat-list {
+    max-height: 180px;
+  }
+}

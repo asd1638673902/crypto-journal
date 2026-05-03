@@ -1,0 +1,138 @@
+/* K线复盘图样式 */
+.kline-chart-wrapper {
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.kline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kline-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kline-subtitle {
+  font-size: 11px;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.kline-periods {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.period-btn {
+  padding: 4px 12px;
+  border: 1px solid #2d2e3d;
+  background: #0f1117;
+  color: #94a3b8;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.period-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #e2e8f0;
+}
+
+.period-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.period-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-btn {
+  padding: 4px 8px;
+  border: 1px solid #2d2e3d;
+  background: #0f1117;
+  color: #94a3b8;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: 4px;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #23243a;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 状态 */
+.kline-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  justify-content: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.kline-status.error {
+  color: #f87171;
+}
+
+.kline-hint {
+  color: #64748b;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+/* 图例 */
+.kline-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: #1a1b23;
+  border-radius: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Canvas */
+.kline-canvas {
+  overflow: hidden;
+}

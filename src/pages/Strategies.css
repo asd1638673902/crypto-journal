@@ -1,0 +1,449 @@
+/* 策略管理页面样式 */
+.strategies-page {
+  max-width: 900px;
+}
+
+.strategies-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.source-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.source-tag.active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.source-tag.inactive {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.source-tag.info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.btn-add-strategy {
+  padding: 8px 20px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-add-strategy:hover {
+  background: #2563eb;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.empty-hint {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 20px;
+}
+
+/* 表单弹窗 */
+.strategy-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.strategy-form {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 0;
+}
+
+.form-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.form-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.form-close:hover {
+  color: #e2e8f0;
+}
+
+.form-body {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.form-field input,
+.form-field textarea {
+  padding: 8px 12px;
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  border-color: #3b82f6;
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: #475569;
+}
+
+.form-field.toggle {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-btn {
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #2d2e3d;
+  background: #0f1117;
+  transition: all 0.15s;
+}
+
+.toggle-btn.on {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
+.toggle-btn.off {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+}
+
+.btn-cancel {
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid #2d2e3d;
+  color: #94a3b8;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-cancel:hover {
+  color: #e2e8f0;
+}
+
+.btn-save {
+  padding: 8px 20px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 策略列表 */
+.strategy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #2d2e3d;
+}
+
+/* 策略卡片 */
+.strategy-card {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color 0.15s;
+}
+
+.strategy-card:hover {
+  border-color: #3b82f6;
+}
+
+.strategy-card.inactive {
+  opacity: 0.7;
+}
+
+.strategy-card.inactive:hover {
+  opacity: 1;
+}
+
+.strategy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.strategy-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.strategy-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.strategy-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.strategy-status.active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.strategy-status.inactive {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.strategy-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.strategy-actions .action-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  line-height: 1;
+}
+
+.strategy-actions .action-btn:hover {
+  background: #23243a;
+}
+
+.strategy-actions .action-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.strategy-desc {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+/* 策略详情项 */
+.strategy-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.strategy-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.detail-text {
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+/* 策略统计 — 网格布局 */
+.strategy-stats-grid {
+  padding-top: 12px;
+  border-top: 1px solid #23243a;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-row {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.stats-row.primary {
+  background: #0f1117;
+  border-radius: 8px;
+  padding: 8px 0;
+}
+
+.stats-row.secondary {
+  padding: 4px 0;
+}
+
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 12px;
+  min-width: 70px;
+  flex: 1;
+  border-right: 1px solid #23243a;
+}
+
+.stats-row.secondary .stat-cell {
+  min-width: 60px;
+  flex: 0 1 auto;
+}
+
+.stat-cell:last-child {
+  border-right: none;
+}
+
+.stat-cell.date-cell {
+  min-width: 85px;
+}
+
+.stat-cell-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: nowrap;
+}
+
+.stat-cell-value.date {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.stat-cell-label {
+  font-size: 10px;
+  color: #64748b;
+  white-space: nowrap;
+  text-align: center;
+}

@@ -1,0 +1,130 @@
+/* NewTrade 表单样式 */
+.new-trade-page {
+  max-width: 800px;
+}
+
+.trade-form {
+  background: #1a1b23;
+  border: 1px solid #2d2e3d;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 8px 12px;
+  background: #0f1117;
+  border: 1px solid #2d2e3d;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #3b82f6;
+}
+.form-group input:disabled,
+.form-group select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* 方向切换按钮 */
+.direction-toggle {
+  display: flex;
+  gap: 8px;
+}
+.toggle-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: 1px solid #2d2e3d;
+  border-radius: 6px;
+  background: #0f1117;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.toggle-btn:hover {
+  border-color: #3b82f6;
+}
+.toggle-btn.active-long {
+  background: #7f1d1d;
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+.toggle-btn.active-short {
+  background: #1e3a2f;
+  border-color: #22c55e;
+  color: #86efac;
+}
+
+/* 表单操作按钮 */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #2d2e3d;
+}
+.btn-cancel {
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid #2d2e3d;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn-cancel:hover {
+  background: #23243a;
+}
+.btn-submit {
+  padding: 8px 20px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-submit:hover {
+  background: #2563eb;
+}
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
