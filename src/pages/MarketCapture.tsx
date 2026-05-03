@@ -6,7 +6,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { fetchKlines, type KlineData, type KlineInterval } from '../lib/exchange';
 import { analyzeMarket, type MarketAnalysisResult } from '../lib/marketAnalysis';
-import { analyzeMultiTimeframe, type MtfAnalysisResult, type MtfConsensus } from '../lib/mtfAnalysis';
+import { analyzeMultiTimeframe, type MtfAnalysisResult } from '../lib/mtfAnalysis';
 import {
   scanBollingerSqueeze, scanVolumeBreakout, scanSmartVolume,
   scanConsecutiveCandles, scanFullAnalysis,
@@ -16,7 +16,6 @@ import {
 import { createPlanFromSignal } from '../lib/tradePlan';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar,
 } from 'recharts';
 import './StrategyLab.css';
 import './MarketCapture.css';
@@ -190,7 +189,7 @@ function ScanPanel({ onSelectSymbol }: { onSelectSymbol: (symbol: string) => voi
             }
           } catch { return null; }
         });
-        const batchResults = (await Promise.all(promises)).filter((r): r is ScanResult => r !== null);
+        const batchResults = (await Promise.all(promises)).filter((r): r is NonNullable<typeof r> => r !== null);
         allResults.push(...batchResults);
       }
       allResults.sort((a, b) => b.score - a.score);
@@ -202,7 +201,7 @@ function ScanPanel({ onSelectSymbol }: { onSelectSymbol: (symbol: string) => voi
     }
   }, [techType, techLimit]);
 
-  const handleClickSymbol = useCallback((symbol: string) => {
+  const handleSymbolClick = useCallback((symbol: string) => {
     if (activeTool !== 'ticker') {
       // 点击扫描结果，打开分析
       onSelectSymbol(symbol);
@@ -929,7 +928,7 @@ export default function MarketCapture() {
   const [tickers, setTickers] = useState<Ticker24h[]>([]);
   const [heatLoading, setHeatLoading] = useState(false);
   const [planCreatedMsg, setPlanCreatedMsg] = useState(false);
-  const [planKey, setPlanKey] = useState(0);
+  const [, setPlanKey] = useState(0);
 
   // 加载行情数据
   useEffect(() => {

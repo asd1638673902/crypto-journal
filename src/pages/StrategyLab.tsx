@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { fetchKlines, type KlineData, type KlineInterval } from '../lib/exchange';
+import { fetchKlines, type KlineInterval } from '../lib/exchange';
 import { getStrategies } from '../lib/db';
 import { runBacktest, type BacktestConfig } from '../lib/backtest';
 import { gridSearch, type ParamRange, type OptimizeTarget, getTargetLabel } from '../lib/optimizer';
@@ -70,7 +70,7 @@ export default function StrategyLab() {
 
 // ==================== 回测面板 ====================
 
-function BacktestPanel({ strategies }: { strategies: { id: string; name: string }[] }) {
+function BacktestPanel({ strategies: _strategies }: { strategies: { id: string; name: string }[] }) {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setInterval] = useState<KlineInterval>('1h');
   const [days, setDays] = useState(30);
@@ -142,7 +142,6 @@ function BacktestPanel({ strategies }: { strategies: { id: string; name: string 
     }
   }, [symbol, interval, days, entryType, smaFast, smaSlow, rsiPeriod, rsiThreshold, slPct, tpPct, initialCapital, riskEnabled, riskPerTrade, riskLeverage]);
 
-  const fmt = (v: number) => v.toFixed ? v.toFixed(2) : String(v);
   const getColor = (v: number, good: number) => v >= good ? '#22c55e' : '#ef4444';
 
   return (
@@ -353,7 +352,7 @@ function BacktestPanel({ strategies }: { strategies: { id: string; name: string 
                     <CartesianGrid strokeDasharray="3 3" stroke="#2d2e3d" />
                     <XAxis dataKey="trade" stroke="#64748b" fontSize={10} />
                     <YAxis stroke="#64748b" fontSize={10} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(1)}K` : v.toFixed(0)} />
-                    <Tooltip contentStyle={{ background: '#1a1b23', border: '1px solid #2d2e3d', color: '#e2e8f0' }} formatter={(v: number) => [`${v.toFixed(2)} USDT`, '权益']} />
+                    <Tooltip contentStyle={{ background: '#1a1b23', border: '1px solid #2d2e3d', color: '#e2e8f0' }} formatter={(v: any) => [`${Number(v).toFixed(2)} USDT`, '权益']} />
                     <Area type="monotone" dataKey="equity" stroke="#3b82f6" fill="url(#eqGrad)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -370,7 +369,7 @@ function BacktestPanel({ strategies }: { strategies: { id: string; name: string 
                       <YAxis stroke="#64748b" fontSize={10} />
                       <Tooltip contentStyle={{ background: '#1a1b23', border: '1px solid #2d2e3d', color: '#e2e8f0' }} />
                       <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
-                        {result.monthlyBreakdown.map((entry, idx) => (
+                        {result.monthlyBreakdown.map((_entry, idx) => (
                           <rect key={idx} /> // Cell replaced for simplicity
                         ))}
                       </Bar>
@@ -461,7 +460,7 @@ function BacktestPanel({ strategies }: { strategies: { id: string; name: string 
 
 // ==================== 优化面板 ====================
 
-function OptimizePanel({ strategies }: { strategies: { id: string; name: string }[] }) {
+function OptimizePanel({ strategies: _strategies }: { strategies: { id: string; name: string }[] }) {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setInterval] = useState<KlineInterval>('1h');
   const [days, setDays] = useState(30);

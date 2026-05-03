@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { getStrategies, addStrategy, updateStrategy, deleteStrategy, getTrades } from '../lib/db';
-import { calcExecutionScore } from '../lib/calculations';
 import type { Strategy, Trade } from '../lib/types';
 import './Strategies.css';
 
