@@ -193,10 +193,12 @@ function checkTimeWindow(): TimeWindowResult {
 // ==================== 综合过滤 ====================
 
 /** 运行全部三个过滤，返回综合结果 */
-export function runMarketFilters(klines: KlineData[]): MarketFilterResult {
+export function runMarketFilters(klines: KlineData[], ignoreTimeFilter: boolean = false): MarketFilterResult {
   const trendResult = checkTrendStrength(klines);
   const volatilityResult = checkVolatility(klines);
-  const timeResult = checkTimeWindow();
+  const timeResult = ignoreTimeFilter
+    ? { passed: true, currentHour: new Date().getHours(), reason: '演示模式 — 忽略时间过滤' }
+    : checkTimeWindow();
 
   // 综合评分：趋势强度(40) + 波动率(30) + 时间窗口(30)
   const trendScore = trendResult.passed ? Math.min(40, trendResult.score * 0.4) : 0;
@@ -218,8 +220,8 @@ export function runMarketFilters(klines: KlineData[]): MarketFilterResult {
 }
 
 /** 简版过滤 — 快速检查是否允许交易 */
-export function quickFilter(klines: KlineData[]): { allowed: boolean; reason: string } {
-  const result = runMarketFilters(klines);
+export function quickFilter(klines: KlineData[], ignoreTimeFilter: boolean = false): { allowed: boolean; reason: string } {
+  const result = runMarketFilters(klines, ignoreTimeFilter);
   if (!result.passed) {
     const reasons: string[] = [];
     if (!result.trendStrength.passed) reasons.push(`趋势: ${result.trendStrength.reason}`);

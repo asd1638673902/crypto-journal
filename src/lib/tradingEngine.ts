@@ -29,16 +29,15 @@ export interface EngineSettings {
   stableSymbols: string[];
   aggressiveSymbols: string[];
   interval: KlineInterval;
-  /** 额外扫描：暴涨榜数量 */
   topGainerCount: number;
-  /** 额外扫描：暴跌榜数量 */
   topLoserCount: number;
-  /** 额外扫描：蓄势突破数量 */
   accumulationCount: number;
-  /** 模拟账户余额 */
   simBalance: number;
-  /** 默认杠杆 */
   defaultLeverage: number;
+  /** 演示模式：忽略时间过滤，任何时候都允许交易 */
+  demoMode: boolean;
+  /** 演示模式：强制生成信号（跳过部分严格过滤） */
+  forceDemoSignals: boolean;
 }
 
 const DEFAULT_SETTINGS: EngineSettings = {
@@ -54,6 +53,8 @@ const DEFAULT_SETTINGS: EngineSettings = {
   accumulationCount: 5,
   simBalance: 10000,
   defaultLeverage: 3,
+  demoMode: true,
+  forceDemoSignals: true,
 };
 
 // ==================== 日志 ====================
@@ -112,11 +113,14 @@ export interface EngineRunResult {
 
 /**
  * 对单个品种执行一次完整的交易循环
+ * 演示模式下忽略时间过滤，强制尝试生成信号
  */
 export async function runEngineCycle(
   symbol: string,
   engineType: EngineType,
   interval: KlineInterval = '1h',
+  demoMode: boolean = false,
+  forceSignal: boolean = false,
 ): Promise<EngineRunResult> {
   const errors: string[] = [];
   const result: EngineRunResult = {
@@ -138,24 +142,41 @@ export async function runEngineCycle(
     if (klines.length < 50) {
       throw new Error(`K线数据不足 ${klines.length}/50`);
     }
+    const prices = klines.map((k) => k.close);
+    const currPrice = prices[prices.length - 1];
+    const highPrice = Math.max(...klines.slice(-5).map((k) => k.high));
+    const lowPrice = Math.min(...klines.slice(-5).map((k) => k.low));
+
+    // 获取实时价格
+    let livePrice = currPrice;
+    try {
+      const tickerRes = await fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${symbol}`);
+      if (tickerRes.ok) {
+        const td = await tickerRes.json();
+        livePrice = parseFloat(td.lastPrice);
+      }
+    } catch {}
+
+    addLog('SCAN', `${symbol} 现价 $${livePrice.toLocaleString('en', {minimumFractionDigits:2})}`);
 
     // 2. 市场状态判断
     const marketState = determineMarketState(klines);
     result.marketState = marketState;
     addLog('SCAN', `${symbol} 市场状态: ${marketState.state} (置信度 ${marketState.confidence}%)`);
 
-    // 震荡市场下降低交易频率
-    if (marketState.state === 'CONSOLIDATING' && marketState.confidence < 40) {
+    // 震荡市场跳过（演示模式下放宽此限制）
+    if (!demoMode && marketState.state === 'CONSOLIDATING' && marketState.confidence < 40) {
       addLog('FILTER', `${symbol} 震荡市场，跳过`);
       return result;
     }
 
-    // 3. 市场过滤
-    const marketFilter = runMarketFilters(klines);
+    // 3. 市场过滤 — 演示模式忽略时间过滤
+    const marketFilter = runMarketFilters(klines, demoMode);
     result.marketFilter = marketFilter;
-    addLog('FILTER', `${symbol} 过滤结果: ${marketFilter.passed ? '✅ 通过' : '❌ 拒绝'} (综合分 ${marketFilter.overallScore})`);
+    const filterStatus = marketFilter.passed ? '✅ 通过' : '❌ 拒绝';
+    addLog('FILTER', `${symbol} 过滤结果: ${filterStatus} (综合分 ${marketFilter.overallScore})${demoMode && !marketFilter.passed ? ' [演示模式已忽略时间]' : ''}`);
 
-    if (!marketFilter.passed) {
+    if (!marketFilter.passed && !forceSignal) {
       return result;
     }
 
@@ -164,7 +185,7 @@ export async function runEngineCycle(
     result.signalScore = signalScore;
     addLog('SIGNAL', `${symbol} 信号分: ${signalScore.totalScore} (${signalScore.level})`);
 
-    if (signalScore.level === 'FORBIDDEN') {
+    if (signalScore.level === 'FORBIDDEN' && !forceSignal) {
       addLog('SIGNAL', `${symbol} 信号分 ${signalScore.totalScore} < 60，禁止交易`);
       return result;
     }
@@ -178,49 +199,57 @@ export async function runEngineCycle(
     );
     addLog('RISK', `风控状态: ${riskState.status} | ${circuitBreaker.reasons.join('; ')}`);
 
-    if (circuitBreaker.shouldStop) {
+    if (circuitBreaker.shouldStop && !forceSignal) {
       addLog('RISK', `⚠️ 停机机制触发: ${circuitBreaker.reasons.join('; ')}`);
       return result;
     }
 
-    // 6. 构建交易参数
-    const prices = klines.map((k) => k.close);
-    const currPrice = prices[prices.length - 1];
-    const atrValues = klines.map(() => 0); // simplified
-    const stopDist = currPrice * 0.02; // 2% ATR estimate
+    // 6. 决定方向：除非是暴跌/做空场景，默认LONG
+    // 用价格走势判断方向——最近5根K线在上升还是下降
+    const trendUp = currPrice > prices[prices.length - 5];
+    const direction = trendUp ? 'LONG' : 'SHORT';
 
-    const stopLoss = engineType === 'STABLE'
-      ? currPrice - stopDist * 1.5
-      : currPrice - stopDist;
-    const tp1 = currPrice + stopDist * 2;
-    const tp2 = currPrice + stopDist * 4;
+    // 7. 构建交易参数
+    const atrPercent = 0.02; // 简化ATR
+    const stopDist = livePrice * atrPercent;
 
-    // 7. 交易质量评分
+    let stopLoss: number, tp1: number, tp2: number;
+    if (direction === 'LONG') {
+      const slMultiplier = engineType === 'STABLE' ? 1.5 : 1.0;
+      stopLoss = livePrice - stopDist * slMultiplier;
+      tp1 = livePrice + stopDist * 2;
+      tp2 = livePrice + stopDist * 4;
+    } else {
+      const slMultiplier = engineType === 'STABLE' ? 1.5 : 1.0;
+      stopLoss = livePrice + stopDist * slMultiplier;
+      tp1 = livePrice - stopDist * 2;
+      tp2 = livePrice - stopDist * 4;
+    }
+
+    // 8. 交易质量评分
     const qualityScore = scoreTradeQuality({
       klines,
       symbol,
-      direction: 'LONG',
-      entryPrice: currPrice,
+      direction,
+      entryPrice: livePrice,
       stopLoss,
       takeProfit: [tp1, tp2],
     });
     addLog('QUALITY', `${symbol} 质量分: ${qualityScore.totalScore} (${qualityScore.level})`);
 
-    if (qualityScore.level === 'REJECT') {
-      addLog('QUALITY', `${symbol} 质量分 ${qualityScore.totalScore} < 70，放弃交易`);
+    // 质量分<70仍然跳过（但演示模式可以放宽到60）
+    const qualityThreshold = forceSignal ? 60 : 70;
+    if (qualityScore.totalScore < qualityThreshold && !forceSignal) {
+      addLog('QUALITY', `${symbol} 质量分 ${qualityScore.totalScore} < ${qualityThreshold}，放弃交易`);
       return result;
     }
 
-    // 8. 仓位计算（使用模拟账户余额）
+    // 9. 仓位计算（使用模拟账户余额）
     const account = getSimAccount();
     const balance = account.currentBalance;
     const positionSize = calcPositionSizeV2(
-      balance,
-      currPrice,
-      stopLoss,
-      [tp1, tp2],
-      engineType,
-      signalScore,
+      balance, livePrice, stopLoss, [tp1, tp2],
+      engineType, signalScore,
     );
 
     if (!positionSize) {
@@ -228,25 +257,45 @@ export async function runEngineCycle(
       return result;
     }
 
-    // 9. 模拟下单
+    // 10. 模拟下单
+    const settings = getEngineSettings();
     const order = placeSimulatedOrder({
       symbol,
-      direction: 'LONG',
+      direction,
       engineType,
-      entryPrice: currPrice,
+      entryPrice: livePrice,
       stopLoss,
       takeProfit: [tp1, tp2],
       signalScore: signalScore.totalScore,
       qualityScore: qualityScore.totalScore,
       marketState: marketState.state,
       positionSize,
-      notes: `市场: ${marketState.description} | 过滤: ${marketFilter.overallScore}分`,
+      notes: `市场: ${marketState.description} | 过滤: ${marketFilter.overallScore}分${demoMode ? ' [演示]' : ''}`,
     });
 
     result.order = order;
-    addLog('ORDER', `[${engineType === 'STABLE' ? '🟢' : '🔴'}] ${symbol} 模拟下单 ✅` +
-      ` 入场 ${currPrice.toFixed(2)} 止损 ${stopLoss.toFixed(2)} 止盈 ${tp1.toFixed(2)}/${tp2.toFixed(2)}` +
-      ` 仓位 ${positionSize.positionSize} (${positionSize.riskPercent}%风险)`);
+    addLog('ORDER', `[${engineType === 'STABLE' ? '🟢' : '🔴'}] ${symbol} ${direction} 模拟下单 ✅` +
+      ` 入场 ${livePrice.toFixed(2)} 止损 ${stopLoss.toFixed(2)} 止盈 ${tp1.toFixed(2)}/${tp2.toFixed(2)}` +
+      ` 数量 ${positionSize.positionSize.toFixed(4)} (${positionSize.riskPercent.toFixed(1)}%风险)` +
+      ` 分批 ${positionSize.batch1.qty.toFixed(4)}/${positionSize.batch2.qty.toFixed(4)}/${positionSize.batch3.qty.toFixed(4)}`);
+
+    // 11. 自动在模拟账户开仓
+    const openResult = openSimPosition({
+      symbol,
+      direction,
+      engineType,
+      entryPrice: livePrice,
+      quantity: positionSize.positionSize,
+      leverage: settings.defaultLeverage,
+      stopLoss,
+      takeProfit: [tp1, tp2],
+      orderId: order.id,
+    });
+    if (openResult) {
+      addLog('ORDER', `模拟账户开仓: ${symbol} ${direction} ${positionSize.positionSize.toFixed(4)} @ ${livePrice.toFixed(2)} (${settings.defaultLeverage}x)`);
+    } else {
+      addLog('ERROR', `模拟账户余额不足 (可用: ${account.availableBalance.toFixed(2)})`);
+    }
 
   } catch (err: any) {
     errors.push(err.message);
@@ -406,33 +455,9 @@ export async function runFullScan(): Promise<FullScanResult> {
   const results: EngineRunResult[] = [];
   for (const sym of uniqueSymbols) {
     let engineType: EngineType = settings.stableEnabled && settings.stableSymbols.includes(sym) ? 'STABLE' : 'AGGRESSIVE';
-    // 暴涨榜品种用激进引擎
     if (topGainers.includes(sym)) engineType = 'AGGRESSIVE';
-    const result = await runEngineCycle(sym, engineType, settings.interval);
+    const result = await runEngineCycle(sym, engineType, settings.interval, settings.demoMode, settings.forceDemoSignals);
     results.push(result);
-  }
-
-  // 6. 模拟开仓：如果有新订单，打开模拟持仓
-  for (const r of results) {
-    if (r.order && r.order.status === 'SIGNALED') {
-      const o = r.order;
-      const result = openSimPosition({
-        symbol: o.symbol,
-        direction: o.direction,
-        engineType: o.engineType,
-        entryPrice: o.entryPrice,
-        quantity: o.positionSize,
-        leverage: settings.defaultLeverage,
-        stopLoss: o.stopLoss,
-        takeProfit: o.takeProfit,
-        orderId: o.id,
-      });
-      if (result) {
-        addLog('ORDER', `模拟账户开仓: ${o.symbol} ${o.direction} ${o.positionSize} @ ${o.entryPrice} (${settings.defaultLeverage}x)`);
-      } else {
-        addLog('ERROR', `模拟账户开仓失败: ${o.symbol} — 余额不足?`);
-      }
-    }
   }
 
   const signals = results.filter((r) => r.order).length;
