@@ -14,6 +14,8 @@ import { scoreSignal, type SignalScore } from './signalScorer';
 import { scoreTradeQuality, type TradeQualityScore } from './tradeQualityScorer';
 import { checkCircuitBreakers, calcPositionSizeV2, getRiskState, recordLoss, recordWin, saveRiskState, type CircuitBreakerResult, type PositionSizeV2 } from './riskProtocol';
 import { placeSimulatedOrder, type PlaceOrderParams } from './tradeExecutor';
+import { scanAccumulationBreakout, type AccumulationBreakoutResult } from './marketScanner';
+import { getSimAccount, openSimPosition, updatePositionPrices, type OpenPositionParams } from './simulatedAccount';
 import type { EngineType, SimulatedOrder, EngineLog } from './types';
 
 const STORAGE_KEY_LOGS = 'crypto-journal-engine-logs';
@@ -27,6 +29,16 @@ export interface EngineSettings {
   stableSymbols: string[];
   aggressiveSymbols: string[];
   interval: KlineInterval;
+  /** 额外扫描：暴涨榜数量 */
+  topGainerCount: number;
+  /** 额外扫描：暴跌榜数量 */
+  topLoserCount: number;
+  /** 额外扫描：蓄势突破数量 */
+  accumulationCount: number;
+  /** 模拟账户余额 */
+  simBalance: number;
+  /** 默认杠杆 */
+  defaultLeverage: number;
 }
 
 const DEFAULT_SETTINGS: EngineSettings = {
@@ -37,6 +49,11 @@ const DEFAULT_SETTINGS: EngineSettings = {
   stableSymbols: ['BTCUSDT', 'ETHUSDT'],
   aggressiveSymbols: ['SOLUSDT', 'BNBUSDT'],
   interval: '1h',
+  topGainerCount: 5,
+  topLoserCount: 5,
+  accumulationCount: 5,
+  simBalance: 10000,
+  defaultLeverage: 3,
 };
 
 // ==================== 日志 ====================
@@ -194,9 +211,11 @@ export async function runEngineCycle(
       return result;
     }
 
-    // 8. 仓位计算
+    // 8. 仓位计算（使用模拟账户余额）
+    const account = getSimAccount();
+    const balance = account.currentBalance;
     const positionSize = calcPositionSizeV2(
-      10000, // 假设10000 USDT
+      balance,
       currPrice,
       stopLoss,
       [tp1, tp2],
@@ -242,6 +261,12 @@ export async function runEngineCycle(
 export interface FullScanResult {
   timestamp: number;
   results: EngineRunResult[];
+  /** 暴涨榜品种（供显示） */
+  topGainers: { symbol: string; change: string; price: string }[];
+  /** 暴跌榜品种（供显示） */
+  topLosers: { symbol: string; change: string; price: string }[];
+  /** 蓄势突破亮点（供显示） */
+  accumulationHighlights: AccumulationBreakoutResult[];
   summary: {
     total: number;
     signals: number;
@@ -250,23 +275,164 @@ export interface FullScanResult {
 }
 
 /**
+ * 获取涨跌幅榜品种
+ */
+async function fetchTopMovers(settings: EngineSettings): Promise<{
+  topGainers: string[];
+  topLosers: string[];
+  gainerData: { symbol: string; change: string; price: string }[];
+  loserData: { symbol: string; change: string; price: string }[];
+}> {
+  const gainerData: { symbol: string; change: string; price: string }[] = [];
+  const loserData: { symbol: string; change: string; price: string }[] = [];
+  const gainers: string[] = [];
+  const losers: string[] = [];
+
+  try {
+    const res = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: any[] = await res.json();
+    const usdt = data.filter((t: any) => t.symbol.endsWith('USDT'));
+
+    // 涨幅榜
+    const sortedGainers = [...usdt].sort((a, b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent));
+    for (const t of sortedGainers.slice(0, settings.topGainerCount)) {
+      gainers.push(t.symbol);
+      gainerData.push({ symbol: t.symbol, change: t.priceChangePercent, price: t.lastPrice });
+    }
+
+    // 跌幅榜
+    const sortedLosers = [...usdt].sort((a, b) => parseFloat(a.priceChangePercent) - parseFloat(b.priceChangePercent));
+    for (const t of sortedLosers.slice(0, settings.topLoserCount)) {
+      losers.push(t.symbol);
+      loserData.push({ symbol: t.symbol, change: t.priceChangePercent, price: t.lastPrice });
+    }
+  } catch (err: any) {
+    addLog('ERROR', `获取涨跌幅榜失败: ${err.message}`);
+  }
+
+  return { topGainers: gainers, topLosers: losers, gainerData, loserData };
+}
+
+/**
+ * 获取蓄势突破亮点
+ */
+async function fetchAccumulationHighlights(settings: EngineSettings): Promise<{
+  symbols: string[];
+  highlights: AccumulationBreakoutResult[];
+}> {
+  const highlights: AccumulationBreakoutResult[] = [];
+  const symbols: string[] = [];
+
+  try {
+    const res = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const allTickers: any[] = await res.json();
+    const usdtSymbols = allTickers.filter((t) => t.symbol.endsWith('USDT')).map((t) => t.symbol);
+
+    const interval = '1h';
+    const allResults: AccumulationBreakoutResult[] = [];
+
+    for (let start = 0; start < Math.min(usdtSymbols.length, 100); start += 50) {
+      const batch = usdtSymbols.slice(start, start + 50);
+      const promises = batch.map(async (sym) => {
+        try {
+          const raw = await (await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${sym}&interval=${interval}&limit=100`)).json();
+          const data: KlineData[] = (raw as any[][]).map((k) => ({
+            time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]),
+            low: parseFloat(k[3]), close: parseFloat(k[4]), volume: parseFloat(k[5]), closeTime: k[6],
+          }));
+          if (data.length < 50) return null;
+          return scanAccumulationBreakout(data, sym);
+        } catch { return null; }
+      });
+      const batchResults = (await Promise.all(promises)).filter((r): r is AccumulationBreakoutResult => r !== null);
+      allResults.push(...batchResults);
+    }
+
+    allResults.sort((a, b) => b.score - a.score);
+    const top = allResults.slice(0, settings.accumulationCount);
+    for (const r of top) {
+      symbols.push(r.symbol);
+      highlights.push(r);
+    }
+  } catch (err: any) {
+    addLog('ERROR', `获取蓄势突破失败: ${err.message}`);
+  }
+
+  return { symbols, highlights };
+}
+
+/**
  * 对所有配置的品种执行一次完整交易循环
  */
 export async function runFullScan(): Promise<FullScanResult> {
   const settings = getEngineSettings();
   const symbols: string[] = [];
+  const scanSources: string[] = [];
 
-  if (settings.stableEnabled) symbols.push(...settings.stableSymbols);
-  if (settings.aggressiveEnabled) symbols.push(...settings.aggressiveSymbols);
+  // 1. 配置品种
+  if (settings.stableEnabled) { symbols.push(...settings.stableSymbols); scanSources.push('配置'); }
+
+  // 2. 暴涨榜
+  const { topGainers, topLosers, gainerData, loserData } = await fetchTopMovers(settings);
+  if (settings.aggressiveEnabled) {
+    symbols.push(...topGainers.slice(0, 3)); // 激进模式扫暴涨榜前3
+    if (topGainers.length > 0) scanSources.push(`暴涨榜(${topGainers.length})`);
+    symbols.push(...topLosers.slice(0, 2)); // 暴跌榜前2
+    if (topLosers.length > 0) scanSources.push(`暴跌榜(${topLosers.length})`);
+  }
+
+  // 3. 蓄势突破
+  const { symbols: accSymbols, highlights } = await fetchAccumulationHighlights(settings);
+  symbols.push(...accSymbols);
+  if (accSymbols.length > 0) scanSources.push(`蓄势突破(${accSymbols.length})`);
 
   const uniqueSymbols = [...new Set(symbols)];
-  addLog('SCAN', `开始全市场扫描: ${uniqueSymbols.join(', ')}`);
+  addLog('SCAN', `全市场扫描: ${uniqueSymbols.length}个 | 来源: ${scanSources.join(' · ')}`);
 
+  // 4. 更新持仓价格
+  const priceMap: Record<string, number> = {};
+  try {
+    const res = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');
+    if (res.ok) {
+      const data: any[] = await res.json();
+      for (const t of data) priceMap[t.symbol] = parseFloat(t.lastPrice);
+    }
+  } catch { /* ignore */ }
+  updatePositionPrices(priceMap);
+
+  // 5. 扫描
   const results: EngineRunResult[] = [];
   for (const sym of uniqueSymbols) {
-    const engineType: EngineType = settings.stableSymbols.includes(sym) ? 'STABLE' : 'AGGRESSIVE';
+    let engineType: EngineType = settings.stableEnabled && settings.stableSymbols.includes(sym) ? 'STABLE' : 'AGGRESSIVE';
+    // 暴涨榜品种用激进引擎
+    if (topGainers.includes(sym)) engineType = 'AGGRESSIVE';
     const result = await runEngineCycle(sym, engineType, settings.interval);
     results.push(result);
+  }
+
+  // 6. 模拟开仓：如果有新订单，打开模拟持仓
+  for (const r of results) {
+    if (r.order && r.order.status === 'SIGNALED') {
+      const o = r.order;
+      const result = openSimPosition({
+        symbol: o.symbol,
+        direction: o.direction,
+        engineType: o.engineType,
+        entryPrice: o.entryPrice,
+        quantity: o.positionSize,
+        leverage: settings.defaultLeverage,
+        stopLoss: o.stopLoss,
+        takeProfit: o.takeProfit,
+        orderId: o.id,
+      });
+      if (result) {
+        addLog('ORDER', `模拟账户开仓: ${o.symbol} ${o.direction} ${o.positionSize} @ ${o.entryPrice} (${settings.defaultLeverage}x)`);
+      } else {
+        addLog('ERROR', `模拟账户开仓失败: ${o.symbol} — 余额不足?`);
+      }
+    }
   }
 
   const signals = results.filter((r) => r.order).length;
@@ -277,6 +443,9 @@ export async function runFullScan(): Promise<FullScanResult> {
   return {
     timestamp: Date.now(),
     results,
+    topGainers: gainerData,
+    topLosers: loserData,
+    accumulationHighlights: highlights,
     summary: { total: results.length, signals, errors },
   };
 }

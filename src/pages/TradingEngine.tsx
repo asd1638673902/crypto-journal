@@ -10,10 +10,11 @@ import { runEdgeCheck, formatEdgeResult, getEdgeHistory, type EdgeReport } from 
 import { runMarketFilters, getFilterLogs, type MarketFilterResult } from '../lib/marketFilter';
 import { scoreTradeQuality, type TradeQualityScore } from '../lib/tradeQualityScorer';
 import { getRiskState, resetRiskState, checkCircuitBreakers, type CircuitBreakerResult } from '../lib/riskProtocol';
-import { runFullScan, getEngineLogs, getEngineSettings, saveEngineSettings, type EngineSettings, type EngineRunResult } from '../lib/tradingEngine';
+import { runFullScan, getEngineLogs, getEngineSettings, saveEngineSettings, type EngineSettings, type EngineRunResult, type FullScanResult } from '../lib/tradingEngine';
 import { startAutoTrading, stopAutoTrading, isAutoTradingRunning, restartAutoTrading } from '../lib/autoScanner';
 import { generateDailyReport, runWeeklyOptimization, type DailyReport, type WeeklyOptimization } from '../lib/selfEvolution';
 import { getSimulatedOrders, getSimulatedStats, type SimulatedOrder, type SimulatedStats } from '../lib/tradeExecutor';
+import { getSimAccount, getAccountPositions, getAccountHistory, initSimAccount, resetSimAccount, formatAccount, type SimAccount, type AccountPosition } from '../lib/simulatedAccount';
 import { fetchKlines, type KlineInterval } from '../lib/exchange';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -35,7 +36,9 @@ export default function TradingEngine() {
   const [settings, setSettings] = useState<EngineSettings>(() => getEngineSettings());
   const [isRunning, setIsRunning] = useState(() => isAutoTradingRunning());
   const [scanning, setScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<EngineRunResult[] | null>(null);
+  const [scanResult, setScanResult] = useState<FullScanResult | null>(null);
+  const [account, setAccount] = useState<SimAccount>(() => getSimAccount());
+  const [positions, setPositions] = useState<AccountPosition[]>(() => getAccountPositions());
   const [dailyReport, setDailyReport] = useState<DailyReport | null>(null);
   const [edgeReport, setEdgeReport] = useState<EdgeReport | null>(null);
   const [riskState, setRiskState] = useState(() => getRiskState());
@@ -54,6 +57,8 @@ export default function TradingEngine() {
     setStats(getSimulatedStats());
     setRiskState(getRiskState());
     setFilterLogs(getFilterLogs());
+    setAccount(getSimAccount());
+    setPositions(getAccountPositions());
     setDailyReport(null);
     setEdgeReport(null);
   }, []);
@@ -64,7 +69,7 @@ export default function TradingEngine() {
     setScanResult(null);
     try {
       const result = await runFullScan();
-      setScanResult(result.results);
+      setScanResult(result);
       refresh();
     } catch (err: any) {
       console.error('扫描失败:', err);
@@ -175,15 +180,64 @@ export default function TradingEngine() {
         {/* ===== 概览 ===== */}
         {activeTab === 'overview' && (
           <div className="lab-panel">
+            {/* 模拟账户概览 */}
+            <div className="bt-result" style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <h3 style={{ margin: 0 }}>💰 模拟账户</h3>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button className="btn-run" onClick={() => { initSimAccount(10000); refresh(); }} style={{ padding: '3px 10px', fontSize: 11, background: '#f59e0b' }}>
+                    重置账户
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
+                {[
+                  { label: '总权益', value: `${account.currentBalance.toFixed(0)} USDT`, color: '#e2e8f0' },
+                  { label: '可用余额', value: `${account.availableBalance.toFixed(0)}`, color: '#22c55e' },
+                  { label: '保证金', value: `${account.usedMargin.toFixed(0)}`, color: '#f59e0b' },
+                  { label: '未实现盈亏', value: `${account.unrealizedPnl >= 0 ? '+' : ''}${account.unrealizedPnl.toFixed(0)}`, color: account.unrealizedPnl >= 0 ? '#ef4444' : '#22c55e' },
+                  { label: '累计盈亏', value: `${account.totalPnl >= 0 ? '+' : ''}${account.totalPnl.toFixed(0)}`, color: account.totalPnl >= 0 ? '#ef4444' : '#22c55e' },
+                  { label: '手续费', value: `${account.totalFeesPaid.toFixed(2)}`, color: '#64748b' },
+                  { label: '交易次数', value: `${account.totalTrades}`, color: '#3b82f6' },
+                  { label: '胜率', value: account.totalTrades > 0 ? `${Math.round(account.winCount / account.totalTrades * 100)}%` : '0%', color: '#8b5cf6' },
+                ].map((c) => (
+                  <div key={c.label} style={{ background: '#11121a', borderRadius: 6, padding: '6px 8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{c.value}</div>
+                    <div style={{ fontSize: 10, color: '#64748b' }}>{c.label}</div>
+                  </div>
+                ))}
+              </div>
+              {/* 持仓 */}
+              {positions.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>当前持仓</div>
+                  {positions.map((p) => (
+                    <div key={p.id} style={{ display: 'flex', gap: 8, fontSize: 11, padding: '4px 8px', background: '#0d0e14', borderRadius: 4, marginBottom: 2 }}>
+                      <span style={{ fontWeight: 600, color: '#e2e8f0' }}>{p.symbol.replace('USDT', '')}</span>
+                      <span style={{ color: p.direction === 'LONG' ? '#ef4444' : '#22c55e' }}>{p.direction === 'LONG' ? '多' : '空'}</span>
+                      <span style={{ color: '#94a3b8' }}>{p.quantity.toFixed(4)} @ {p.entryPrice.toFixed(2)}</span>
+                      <span style={{ color: '#f59e0b' }}>{p.leverage}x</span>
+                      <span style={{ color: p.unrealizedPnl >= 0 ? '#ef4444' : '#22c55e', fontWeight: 600 }}>
+                        {p.unrealizedPnl >= 0 ? '+' : ''}{p.unrealizedPnl.toFixed(2)} ({p.unrealizedPnlPercent >= 0 ? '+' : ''}{p.unrealizedPnlPercent.toFixed(1)}%)
+                      </span>
+                      <span style={{ color: '#64748b', marginLeft: 'auto' }}>
+                        强平 {p.liquidationPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* 统计卡片 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 16 }}>
               {[
                 { label: '模拟订单', value: stats.totalOrders, color: '#3b82f6' },
                 { label: '持仓中', value: stats.openOrders, color: '#f59e0b' },
                 { label: '已平仓', value: stats.closedOrders, color: '#22c55e' },
                 { label: '胜率', value: `${stats.winRate}%`, color: '#8b5cf6' },
                 { label: '总盈亏', value: `${stats.totalPnl >= 0 ? '+' : ''}${stats.totalPnl.toFixed(0)}`, color: stats.totalPnl >= 0 ? '#ef4444' : '#22c55e' },
-                { label: '风控状态', value: riskState.status === 'NORMAL' ? '正常' : riskState.status === 'WARNING' ? '⚠️' : '🛑', color: riskState.status === 'NORMAL' ? '#22c55e' : '#ef4444' },
+                { label: '风控', value: riskState.status === 'NORMAL' ? '正常' : riskState.status === 'WARNING' ? '⚠️' : '🛑', color: riskState.status === 'NORMAL' ? '#22c55e' : '#ef4444' },
               ].map((c) => (
                 <div key={c.label} style={{ background: '#1a1b23', border: '1px solid #2d2e3d', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
                   <div style={{ fontSize: 20, fontWeight: 800, color: c.color }}>{c.value}</div>
@@ -267,71 +321,123 @@ export default function TradingEngine() {
               </div>
             )}
 
-            {/* 扫描结果 */}
+            {/* 市场亮点 */}
             {scanResult && (
-              <div className="bt-result">
-                <h3>扫描结果 <span className="result-period">{scanResult.length} 个品种</span></h3>
-                <div className="table-container" style={{ marginTop: 8 }}>
-                  <table className="trades-table">
-                    <thead>
-                      <tr>
-                        <th>品种</th><th>引擎</th><th>市场状态</th><th>过滤</th><th>信号分</th><th>信号</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {scanResult.map((r) => (
-                        <tr key={r.symbol}>
-                          <td style={{ fontWeight: 600 }}>{r.symbol.replace('USDT', '')}</td>
-                          <td>
-                            <span style={{ color: r.engineType === 'STABLE' ? '#22c55e' : '#ef4444', fontSize: 12 }}>
-                              {r.engineType === 'STABLE' ? '🟢 稳健' : '🔴 激进'}
-                            </span>
-                          </td>
-                          <td>
-                            {r.marketState ? (
-                              <span style={{
-                                color: r.marketState.state === 'EXPLOSIVE' ? '#ef4444'
-                                  : r.marketState.state === 'TRENDING' ? '#22c55e' : '#f59e0b',
-                                fontSize: 12,
-                              }}>
-                                {r.marketState.state === 'EXPLOSIVE' ? '🔥' : r.marketState.state === 'TRENDING' ? '📈' : '➡️'}
-                                {' '}{r.marketState.confidence}%
-                              </span>
-                            ) : <span style={{ fontSize: 12, color: '#64748b' }}>—</span>}
-                          </td>
-                          <td>
-                            {r.marketFilter ? (
-                              <span style={{ color: r.marketFilter.passed ? '#22c55e' : '#ef4444', fontSize: 12 }}>
-                                {r.marketFilter.passed ? '✅' : '❌'} {r.marketFilter.overallScore}
-                              </span>
-                            ) : <span style={{ fontSize: 12, color: '#64748b' }}>—</span>}
-                          </td>
-                          <td>
-                            {r.signalScore ? (
-                              <span style={{
-                                color: r.signalScore.level === 'BOOST' ? '#22c55e'
-                                  : r.signalScore.level === 'NORMAL' ? '#f59e0b' : '#ef4444',
-                                fontWeight: 600, fontSize: 13,
-                              }}>
-                                {r.signalScore.totalScore}
-                              </span>
-                            ) : <span style={{ fontSize: 12, color: '#64748b' }}>—</span>}
-                          </td>
-                          <td>
-                            {r.order ? (
-                              <span className="signal-tag" style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
-                                ✅ 下单
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: 12, color: '#64748b' }}>跳过</span>
-                            )}
-                          </td>
-                        </tr>
+              <>
+                {/* 暴涨榜 / 暴跌榜 / 蓄势突破 */}
+                <div className="mc-heat-grid" style={{ marginBottom: 12 }}>
+                  <div className="mc-heat-card">
+                    <div className="mc-heat-title" style={{ color: '#ef4444' }}>🔥 暴涨榜</div>
+                    <div className="mc-heat-list">
+                      {scanResult.topGainers.map((t, i) => (
+                        <div key={t.symbol} className="mc-heat-row" style={{ fontSize: 11 }}>
+                          <span className="mc-heat-rank" style={{ color: i < 3 ? '#f59e0b' : '#64748b' }}>{i + 1}</span>
+                          <span className="mc-heat-symbol">{t.symbol.replace('USDT', '')}</span>
+                          <span className="mc-heat-value mc-up">{parseFloat(t.change) >= 0 ? '+' : ''}{parseFloat(t.change).toFixed(2)}%</span>
+                          <span className="mc-heat-price">${parseFloat(t.price).toFixed(2)}</span>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
+                      {scanResult.topGainers.length === 0 && <div style={{ padding: 10, fontSize: 11, color: '#64748b', textAlign: 'center' }}>无数据</div>}
+                    </div>
+                  </div>
+                  <div className="mc-heat-card">
+                    <div className="mc-heat-title" style={{ color: '#22c55e' }}>❄️ 暴跌榜</div>
+                    <div className="mc-heat-list">
+                      {scanResult.topLosers.map((t, i) => (
+                        <div key={t.symbol} className="mc-heat-row" style={{ fontSize: 11 }}>
+                          <span className="mc-heat-rank" style={{ color: i < 3 ? '#f59e0b' : '#64748b' }}>{i + 1}</span>
+                          <span className="mc-heat-symbol">{t.symbol.replace('USDT', '')}</span>
+                          <span className="mc-heat-value mc-down">{parseFloat(t.change) >= 0 ? '+' : ''}{parseFloat(t.change).toFixed(2)}%</span>
+                          <span className="mc-heat-price">${parseFloat(t.price).toFixed(2)}</span>
+                        </div>
+                      ))}
+                      {scanResult.topLosers.length === 0 && <div style={{ padding: 10, fontSize: 11, color: '#64748b', textAlign: 'center' }}>无数据</div>}
+                    </div>
+                  </div>
+                  <div className="mc-heat-card">
+                    <div className="mc-heat-title" style={{ color: '#f59e0b' }}>⏳ 蓄势突破亮点</div>
+                    <div className="mc-heat-list">
+                      {scanResult.accumulationHighlights.slice(0, 5).map((r) => {
+                        const phaseLabel = r.phase === 'both' ? '🔥 爆发' : r.phase === 'accumulating' ? '⏳ 蓄势' : r.phase === 'breaking_out' ? '🚀 突破' : '➖';
+                        const phaseColor = r.phase === 'both' ? '#ef4444' : r.phase === 'accumulating' ? '#f59e0b' : r.phase === 'breaking_out' ? '#22c55e' : '#64748b';
+                        return (
+                          <div key={r.symbol} className="mc-heat-row" style={{ fontSize: 11 }}>
+                            <span className="mc-heat-symbol">{r.symbol.replace('USDT', '')}</span>
+                            <span style={{ color: phaseColor, fontWeight: 600, fontSize: 10 }}>{phaseLabel}</span>
+                            <span className="mc-heat-value" style={{ color: '#94a3b8' }}>{r.score.toFixed(1)}分</span>
+                          </div>
+                        );
+                      })}
+                      {scanResult.accumulationHighlights.length === 0 && <div style={{ padding: 10, fontSize: 11, color: '#64748b', textAlign: 'center' }}>扫描后显示</div>}
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                {/* 详细扫描结果 */}
+                <div className="bt-result">
+                  <h3>扫描结果 <span className="result-period">{scanResult.results.length} 个品种 · {scanResult.summary.signals} 个信号</span></h3>
+                  <div className="table-container" style={{ marginTop: 8 }}>
+                    <table className="trades-table">
+                      <thead>
+                        <tr>
+                          <th>品种</th><th>引擎</th><th>市场状态</th><th>过滤</th><th>信号分</th><th>信号</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {scanResult.results.map((r) => (
+                          <tr key={r.symbol}>
+                            <td style={{ fontWeight: 600 }}>{r.symbol.replace('USDT', '')}</td>
+                            <td>
+                              <span style={{ color: r.engineType === 'STABLE' ? '#22c55e' : '#ef4444', fontSize: 12 }}>
+                                {r.engineType === 'STABLE' ? '🟢 稳健' : '🔴 激进'}
+                              </span>
+                            </td>
+                            <td>
+                              {r.marketState ? (
+                                <span style={{
+                                  color: r.marketState.state === 'EXPLOSIVE' ? '#ef4444'
+                                    : r.marketState.state === 'TRENDING' ? '#22c55e' : '#f59e0b',
+                                  fontSize: 12,
+                                }}>
+                                  {r.marketState.state === 'EXPLOSIVE' ? '🔥' : r.marketState.state === 'TRENDING' ? '📈' : '➡️'}
+                                  {' '}{r.marketState.confidence}%
+                                </span>
+                              ) : <span style={{ fontSize: 12, color: '#64748b' }}>—</span>}
+                            </td>
+                            <td>
+                              {r.marketFilter ? (
+                                <span style={{ color: r.marketFilter.passed ? '#22c55e' : '#ef4444', fontSize: 12 }}>
+                                  {r.marketFilter.passed ? '✅' : '❌'} {r.marketFilter.overallScore}
+                                </span>
+                              ) : <span style={{ fontSize: 12, color: '#64748b' }}>—</span>}
+                            </td>
+                            <td>
+                              {r.signalScore ? (
+                                <span style={{
+                                  color: r.signalScore.level === 'BOOST' ? '#22c55e'
+                                    : r.signalScore.level === 'NORMAL' ? '#f59e0b' : '#ef4444',
+                                  fontWeight: 600, fontSize: 13,
+                                }}>
+                                  {r.signalScore.totalScore}
+                                </span>
+                              ) : <span style={{ fontSize: 12, color: '#64748b' }}>—</span>}
+                            </td>
+                            <td>
+                              {r.order ? (
+                                <span className="signal-tag" style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
+                                  ✅ 下单
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: 12, color: '#64748b' }}>跳过</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
             )}
 
             {!scanResult && !dailyReport && !scanning && (
