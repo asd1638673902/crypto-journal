@@ -1,7 +1,7 @@
 /**
  * V2 量化交易系统控制台
  *
- * 标签页：概览 · 信号看板 · Edge验证 · 风控仪表 · 运行日志
+ * 标签页：概览 · 信号看板 · Edge验证 · 风控仪表 · 验证 · 日志
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
@@ -15,19 +15,22 @@ import { startAutoTrading, stopAutoTrading, isAutoTradingRunning, restartAutoTra
 import { generateDailyReport, runWeeklyOptimization, type DailyReport, type WeeklyOptimization } from '../lib/selfEvolution';
 import { getSimulatedOrders, getSimulatedStats, type SimulatedOrder, type SimulatedStats } from '../lib/tradeExecutor';
 import { getSimAccount, getAccountPositions, getAccountHistory, initSimAccount, resetSimAccount, formatAccount, type SimAccount, type AccountPosition } from '../lib/simulatedAccount';
+import { runEngineBacktest, type EngineBacktestResult, type BacktestTrade } from '../lib/engineBacktest';
+import { generateValidationReport, type ValidationReport, type ComparisonRow } from '../lib/validationDashboard';
 import { fetchKlines, type KlineInterval } from '../lib/exchange';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area,
 } from 'recharts';
 import './StrategyLab.css';
 
-type Tab = 'overview' | 'signals' | 'edge' | 'risk' | 'logs';
+type Tab = 'overview' | 'signals' | 'edge' | 'risk' | 'validate' | 'logs';
 
 const TAB_LABELS: Record<Tab, string> = {
   overview: '📊 概览',
   signals: '📋 信号看板',
   edge: '🔬 Edge验证',
   risk: '🛡️ 风控',
+  validate: '🔬 验证',
   logs: '📈 日志',
 };
 
@@ -50,6 +53,11 @@ export default function TradingEngine() {
   const [weeklyOpt, setWeeklyOpt] = useState<WeeklyOptimization | null>(null);
   const [sampleKlines, setSampleKlines] = useState<any[]>([]);
   const [qualityTestResult, setQualityTestResult] = useState<string>('');
+  const [backtesting, setBacktesting] = useState(false);
+  const [backtestResult, setBacktestResult] = useState<EngineBacktestResult | null>(null);
+  const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
+  const [backtestDays, setBacktestDays] = useState(30);
+  const [backtestSymbol, setBacktestSymbol] = useState('BTCUSDT');
 
   const refresh = useCallback(() => {
     setLogs(getEngineLogs(50));
@@ -165,7 +173,7 @@ export default function TradingEngine() {
 
       {/* 标签页导航 */}
       <div className="lab-tabs">
-        {(['overview', 'signals', 'edge', 'risk', 'logs'] as Tab[]).map((tab) => (
+        {(['overview', 'signals', 'edge', 'risk', 'validate', 'logs'] as Tab[]).map((tab) => (
           <button
             key={tab}
             className={`lab-tab ${activeTab === tab ? 'active' : ''}`}
@@ -672,6 +680,227 @@ export default function TradingEngine() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ===== 验证仪表盘 ===== */}
+        {activeTab === 'validate' && (
+          <div className="lab-panel">
+            {/* 回测配置 */}
+            <div className="bt-config" style={{ marginBottom: 12 }}>
+              <div className="config-grid" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
+                <div className="config-field">
+                  <label>品种</label>
+                  <input value={backtestSymbol} onChange={(e) => setBacktestSymbol(e.target.value.toUpperCase())} placeholder="BTCUSDT" />
+                </div>
+                <div className="config-field">
+                  <label>回测天数</label>
+                  <select value={backtestDays} onChange={(e) => setBacktestDays(Number(e.target.value))}>
+                    <option value={7}>7天</option>
+                    <option value={15}>15天</option>
+                    <option value={30}>30天</option>
+                    <option value={60}>60天</option>
+                    <option value={90}>90天</option>
+                  </select>
+                </div>
+                <button className="btn-run" onClick={async () => {
+                  setBacktesting(true);
+                  setBacktestResult(null);
+                  setValidationReport(null);
+                  try {
+                    const result = await runEngineBacktest(backtestSymbol, '1h', backtestDays, 10000);
+                    setBacktestResult(result);
+                    setValidationReport(generateValidationReport([result]));
+                  } catch (err: any) {
+                    alert('回测失败: ' + err.message);
+                  } finally { setBacktesting(false); }
+                }} disabled={backtesting} style={{ alignSelf: 'flex-end' }}>
+                  {backtesting ? '⏳ 回测中...' : '▶ 运行回测'}
+                </button>
+              </div>
+              {backtesting && <p className="optimizing-hint" style={{ margin: '8px 0 0' }}>正在回测 {backtestSymbol} 过去 {backtestDays} 天...</p>}
+            </div>
+
+            {/* 开仓策略说明 */}
+            {validationReport && (
+              <div className="bt-result" style={{ marginBottom: 12 }}>
+                <h3>📖 开仓策略说明</h3>
+                <pre style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: 0 }}>
+                  {validationReport.strategyDescription}
+                </pre>
+              </div>
+            )}
+
+            {/* 回测结果概览 */}
+            {backtestResult && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 12 }}>
+                  {[
+                    { label: '交易次数', value: backtestResult.totalTrades, color: '#3b82f6' },
+                    { label: '胜率', value: `${backtestResult.winRate}%`, color: backtestResult.winRate >= 50 ? '#ef4444' : '#22c55e' },
+                    { label: '盈亏比', value: backtestResult.profitFactor.toFixed(2), color: '#8b5cf6' },
+                    { label: '期望值', value: `${backtestResult.expectancy >= 0 ? '+' : ''}${backtestResult.expectancy.toFixed(2)}`, color: backtestResult.expectancy > 0 ? '#22c55e' : '#ef4444' },
+                    { label: '净盈亏', value: `${backtestResult.netPnl >= 0 ? '+' : ''}${backtestResult.netPnl}`, color: backtestResult.netPnl >= 0 ? '#ef4444' : '#22c55e' },
+                    { label: '最大回撤', value: `${backtestResult.maxDrawdown}%`, color: backtestResult.maxDrawdown >= 15 ? '#ef4444' : '#f59e0b' },
+                    { label: '过滤拒绝率', value: `${backtestResult.filterRejectionRate}%`, color: '#64748b' },
+                    { label: '质量拒绝率', value: `${backtestResult.qualityRejectionRate}%`, color: '#64748b' },
+                  ].map((c) => (
+                    <div key={c.label} style={{ background: '#1a1b23', border: '1px solid #2d2e3d', borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: c.color }}>{c.value}</div>
+                      <div style={{ fontSize: 10, color: '#64748b' }}>{c.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 权益曲线 */}
+                {backtestResult.equityCurve.length > 0 && (
+                  <div className="chart-card" style={{ marginBottom: 12 }}>
+                    <h4>权益曲线（初始 10,000 USDT）</h4>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <AreaChart data={backtestResult.equityCurve.filter((_, i) => i % Math.max(1, Math.floor(backtestResult.equityCurve.length / 60)) === 0)}>
+                        <defs>
+                          <linearGradient id="btEqGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#2d2e3d" />
+                        <XAxis dataKey="bar" stroke="#64748b" fontSize={9} />
+                        <YAxis stroke="#64748b" fontSize={9} domain={['auto', 'auto']} />
+                        <Tooltip contentStyle={{ background: '#1a1b23', border: '1px solid #2d2e3d', color: '#e2e8f0' }} />
+                        <Area type="monotone" dataKey="equity" stroke="#22c55e" fill="url(#btEqGrad)" strokeWidth={2} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* 5组对比 */}
+                {validationReport && (
+                  <>
+                    {[
+                      validationReport.strategyComparison,
+                      validationReport.marketStateComparison,
+                      validationReport.scoreComparison,
+                      validationReport.timePeriodComparison,
+                    ].map((section) => (
+                      <div key={section.title} className="bt-result" style={{ marginBottom: 10 }}>
+                        <h4 style={{ fontSize: 13, marginBottom: 8 }}>{section.title}</h4>
+                        <div className="table-container">
+                          <table className="trades-table" style={{ fontSize: 12 }}>
+                            <thead>
+                              <tr>
+                                <th>条件</th><th>笔数</th><th>胜率</th><th>平均盈</th><th>平均亏</th><th>盈亏比</th><th>期望值</th><th>净盈亏</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {section.rows.map((row, i) => (
+                                <tr key={i}>
+                                  <td style={{ fontWeight: 600, color: row.totalTrades === 0 ? '#64748b' : '#e2e8f0' }}>{row.label}</td>
+                                  <td>{row.totalTrades}</td>
+                                  <td style={{ color: row.winRate >= 50 ? '#ef4444' : '#22c55e', fontWeight: 600 }}>{row.winRate}%</td>
+                                  <td style={{ color: '#ef4444' }}>{row.avgWin.toFixed(2)}</td>
+                                  <td style={{ color: '#22c55e' }}>{row.avgLoss.toFixed(2)}</td>
+                                  <td>{row.profitFactor === Infinity ? '∞' : row.profitFactor.toFixed(2)}</td>
+                                  <td style={{ fontWeight: 700, color: row.expectancy > 0 ? '#22c55e' : '#ef4444' }}>
+                                    {row.expectancy >= 0 ? '+' : ''}{row.expectancy.toFixed(2)}
+                                  </td>
+                                  <td style={{ fontWeight: 700, color: row.netPnl >= 0 ? '#ef4444' : '#22c55e' }}>{row.netPnl.toFixed(1)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* 市场状态vs评分交叉表 */}
+                    <div className="bt-result" style={{ marginBottom: 10 }}>
+                      <h4 style={{ fontSize: 13, marginBottom: 8 }}>📊 赚��公式 — 条件组合表现</h4>
+                      <div className="table-container">
+                        <table className="trades-table" style={{ fontSize: 12 }}>
+                          <thead>
+                            <tr><th>条件组合</th><th>笔数</th><th>胜率</th><th>期望值</th><th>净盈亏</th></tr>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              const allTrades = backtestResult.trades;
+                              const groups = [
+                                { label: '📈 趋势 + 高评分(≥80)', filter: (t: BacktestTrade) => t.marketState === 'TRENDING' && t.signalScore >= 80 },
+                                { label: '📈 趋势 + 普通评分', filter: (t: BacktestTrade) => t.marketState === 'TRENDING' && t.signalScore < 80 },
+                                { label: '➡️ 震荡', filter: (t: BacktestTrade) => t.marketState === 'CONSOLIDATING' },
+                                { label: '🔥 爆发', filter: (t: BacktestTrade) => t.marketState === 'EXPLOSIVE' },
+                                { label: '🌎 美盘交易', filter: (t: BacktestTrade) => t.timePeriod === 'US' },
+                                { label: '🌏 亚洲盘', filter: (t: BacktestTrade) => t.timePeriod === 'ASIA' },
+                              ];
+                              return groups.map((g) => {
+                                const trades = allTrades.filter(g.filter);
+                                const wins = trades.filter((t) => t.pnl > 0);
+                                const winRate = trades.length > 0 ? (wins.length / trades.length) * 100 : 0;
+                                const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
+                                const avgLossVal = (trades.length - wins.length) > 0 ? Math.abs(trades.filter((t) => t.pnl <= 0).reduce((s, t) => s + t.pnl, 0)) / (trades.length - wins.length) : 0;
+                                const lossRateVal = trades.length > 0 ? (trades.length - wins.length) / trades.length : 0;
+                                const expectancyVal = (winRate / 100 * avgWin) - (lossRateVal * avgLossVal);
+                                const netPnl = trades.reduce((s, t) => s + t.pnl, 0);
+                                return (
+                                  <tr key={g.label}>
+                                    <td style={{ fontWeight: 600 }}>{g.label}</td>
+                                    <td>{trades.length}</td>
+                                    <td style={{ color: winRate >= 50 ? '#ef4444' : '#22c55e', fontWeight: 600 }}>{Math.round(winRate * 100) / 100}%</td>
+                                    <td style={{ fontWeight: 700, color: expectancyVal > 0 ? '#22c55e' : '#ef4444' }}>{expectancyVal >= 0 ? '+' : ''}{Math.round(expectancyVal * 100) / 100}</td>
+                                    <td style={{ fontWeight: 700, color: netPnl >= 0 ? '#ef4444' : '#22c55e' }}>{Math.round(netPnl * 100) / 100}</td>
+                                  </tr>
+                                );
+                              });
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* 交易明细表 */}
+                    {backtestResult.trades.length > 0 && (
+                      <div className="bt-result">
+                        <h4 style={{ fontSize: 13, marginBottom: 8 }}>交易明细（最近20笔）</h4>
+                        <div className="table-container">
+                          <table className="trades-table" style={{ fontSize: 11 }}>
+                            <thead>
+                              <tr><th>#</th><th>方向</th><th>入场</th><th>出场</th><th>盈亏</th><th>持有</th><th>信号分</th><th>质量分</th><th>市场</th><th>时段</th></tr>
+                            </thead>
+                            <tbody>
+                              {backtestResult.trades.slice(-20).map((t) => (
+                                <tr key={t.index}>
+                                  <td>{t.index + 1}</td>
+                                  <td style={{ color: t.direction === 'LONG' ? '#ef4444' : '#22c55e', fontWeight: 600 }}>
+                                    {t.direction === 'LONG' ? '多' : '空'}
+                                  </td>
+                                  <td>{t.entryPrice.toFixed(2)}</td>
+                                  <td>{t.exitPrice.toFixed(2)}</td>
+                                  <td style={{ fontWeight: 600, color: t.pnl >= 0 ? '#ef4444' : '#22c55e' }}>
+                                    {t.pnl >= 0 ? '+' : ''}{t.pnl.toFixed(2)}
+                                  </td>
+                                  <td>{t.holdingBars}根</td>
+                                  <td style={{ color: t.signalScore >= 80 ? '#22c55e' : '#f59e0b' }}>{t.signalScore}</td>
+                                  <td style={{ color: t.qualityScore >= 70 ? '#22c55e' : '#f59e0b' }}>{t.qualityScore}</td>
+                                  <td style={{ fontSize: 10 }}>{t.marketState === 'TRENDING' ? '📈' : t.marketState === 'EXPLOSIVE' ? '🔥' : '➡️'}</td>
+                                  <td style={{ fontSize: 10 }}>{t.timePeriod === 'US' ? '🌎' : t.timePeriod === 'ASIA' ? '🌏' : t.timePeriod === 'EUROPE' ? '🌍' : '🌙'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+
+            {!backtestResult && !backtesting && (
+              <div className="status-bar info" style={{ textAlign: 'center', padding: '30px 20px' }}>
+                选择品种和回测天数后点击「运行回测」，系统将输出完整的验证报告。<br />
+                包含5组对比分析和赚��公式条件组合表。
+              </div>
+            )}
           </div>
         )}
 
