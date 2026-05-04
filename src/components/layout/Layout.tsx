@@ -48,6 +48,10 @@ function Layout() {
             <span className="nav-icon">🎯</span>
             市场捕捉
           </NavLink>
+          <NavLink to="/trading-engine" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+            <span className="nav-icon">⚡</span>
+            量化交易
+          </NavLink>
           <NavLink to="/ai-review" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
             <span className="nav-icon">🤖</span>
             AI复盘助理

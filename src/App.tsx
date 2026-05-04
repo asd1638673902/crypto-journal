@@ -8,6 +8,7 @@ import Strategies from './pages/Strategies';
 import Sync from './pages/Sync';
 import StrategyLab from './pages/StrategyLab';
 import MarketCapture from './pages/MarketCapture';
+import TradingEngine from './pages/TradingEngine';
 import AiReview from './pages/AiReview';
 import { useEffect } from 'react';
 import { initMockData, initDatabase } from './lib/db';
@@ -33,6 +34,7 @@ function App() {
           <Route path="/sync" element={<Sync />} />
           <Route path="/strategy-lab" element={<StrategyLab />} />
           <Route path="/market-capture" element={<MarketCapture />} />
+          <Route path="/trading-engine" element={<TradingEngine />} />
           <Route path="/ai-review" element={<AiReview />} />
         </Route>
       </Routes>
