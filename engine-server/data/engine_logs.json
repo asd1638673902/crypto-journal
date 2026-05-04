@@ -3,5 +3,10 @@
     "timestamp": "2026-05-04T19:43:41.842Z",
     "type": "ENGINE",
     "message": "引擎已启动: btcusdt,ethusdt,solusdt (5m)"
+  },
+  {
+    "timestamp": "2026-05-04T20:07:13.064Z",
+    "type": "ENGINE",
+    "message": "引擎已启动: btcusdt,ethusdt,solusdt (5m)"
   }
 ]
