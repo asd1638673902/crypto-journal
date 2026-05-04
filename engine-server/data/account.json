@@ -1,0 +1,14 @@
+[
+  {
+    "initialBalance": 10000,
+    "currentBalance": 10000,
+    "availableBalance": 10000,
+    "usedMargin": 0,
+    "unrealizedPnl": 0,
+    "totalPnl": 0,
+    "totalFeesPaid": 0,
+    "totalTrades": 0,
+    "winCount": 0,
+    "lossCount": 0
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+    "timestamp": "2026-05-04T19:43:41.825Z",
+    "type": "DEPOSIT",
+    "amount": 10000,
+    "balanceAfter": 10000,
+    "description": "初始入金 10000 USDT"
+  }
+]
